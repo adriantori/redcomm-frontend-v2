@@ -1,10 +1,11 @@
 <template>
   <div>
     <header class="shadow-sm bg-white">
+      <!--Navbar -->
       <div class="container mx-auto p-4 m-4 flex justify-between">
           <strong class="w-1/6 text-lg"><b>RedComm Sticky Note</b></strong>
-          <button @click="$fetch" class="w-1/6 justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Refresh</button>
           <button id="button" data-modal-toggle="modal" data-modal-target="modal" type="button" class="w-1/6 justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-2.5 mr-2 text-sm dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Add</button>
+        <!--Navbar End-->
           <!--Search Start -->
           <div class="flex items-center w-3/6">   
               <label for="simple-search" class="sr-only">Search</label>
@@ -56,23 +57,19 @@
 
       <!-- Fetch Data -->
       <div>
-        <p v-if="$fetchState.pending">Fetching mountains...</p>
-        <p v-else-if="$fetchState.error">An error occurred</p>
-        <div v-else>
           <div class="grid grid-cols-2 gap-5 m-4">
-            <div v-for="product of products" class="card p-4">
-              <h1><b class="text-left">{{ product.title }}</b> <button class="btn float-right">DEL</button></h1>
-              <p>{{ product.description }}</p>
+            <div v-for="note of notes.data" class="card p-4">
+              <h1><b class="text-left truncate">{{ note.title }}</b> <button class="btn float-right" @click="deleteNote">DEL</button></h1>
+              <p class="text-left break-words p-4 pl-0">{{ note.desc }}</p>
             </div>
-          </div>
+        </div>
       </div>
-    </div>
+      <!-- Fetch Data End -->
   </div>
 </template>
 
 <script>
 //import for modal
-import { onMounted } from 'vue'
 import { Modal } from 'flowbite'
 
 export default {
@@ -82,32 +79,32 @@ export default {
     	title: '',
       desc: '',
       searchInput: '',
-      products:[]
+      notes:[]
   	}
 	},
   //fetch data from API
-  async fetch() {
-    this.products = await fetch(
-      'https://fakestoreapi.com/products'
-    ).then(res => res.json())
+  async asyncData({ $axios }) {
+    const notes = await $axios.$get('http://127.0.0.1:8000/api/notes')
+    return { notes }
   },
-  //Add and Search
+  //Add, delete, and Search
   methods: {
     addNote(event) {
-      // `this` inside methods points to the current active instance
-      alert(`Hello ${this.title} and ${this.desc}!`)
-      // `event` is the native DOM event
+      alert(`Title: ${this.title} <br/> Description: ${this.desc}`)
+      /* await $axios.$post('http://127.0.0.1:8000/api/notes',
+      {
+        title: this.title,
+        desc: this.desc,
+      }) */
+    },
+    deleteNote(id, event){
+      alert(`deleted`)
     },
     search(event){
       alert(`Search Input: ${this.searchInput}`)
-    }
-  },
-}
-
-
-
-onMounted(() => {
-    
+    },
+  }, 
+  mounted: function(){
     // setup available elements
     const $buttonElement = document.querySelector('#button');
     const $modalElement = document.querySelector('#modal');
@@ -128,7 +125,9 @@ onMounted(() => {
         $closeButton.addEventListener('click', () => modal.hide());
         $cancelAdding.addEventListener('click', () => modal.hide());
     }
-})
+  }
+}
+ 
 </script>
 
 <style>
